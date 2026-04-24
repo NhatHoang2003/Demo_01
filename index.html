@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini TFT</title>
+  <style>
+    body { font-family: Arial; text-align: center; }
+    .board, .shop { display: flex; justify-content: center; margin: 10px; }
+    .unit {
+      border: 1px solid #333;
+      padding: 10px;
+      margin: 5px;
+      width: 80px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Mini TFT</h2>
+<p>Gold: <span id="gold">10</span></p>
+
+<h3>Shop</h3>
+<div class="shop" id="shop"></div>
+
+<h3>Your Team</h3>
+<div class="board" id="board"></div>
+
+<button onclick="rollShop()">Roll (2 gold)</button>
+<button onclick="startBattle()">Start Battle</button>
+
+<p id="log"></p>
+
+<script>
+let gold = 10;
+let shop = [];
+let board = [];
+
+const units = [
+  { name: "Warrior", hp: 100, atk: 20 },
+  { name: "Mage", hp: 60, atk: 35 },
+  { name: "Tank", hp: 150, atk: 10 }
+];
+
+function updateUI() {
+  document.getElementById("gold").innerText = gold;
+
+  // Shop
+  const shopDiv = document.getElementById("shop");
+  shopDiv.innerHTML = "";
+  shop.forEach((u, i) => {
+    const div = document.createElement("div");
+    div.className = "unit";
+    div.innerText = u.name;
+    div.onclick = () => buyUnit(i);
+    shopDiv.appendChild(div);
+  });
+
+  // Board
+  const boardDiv = document.getElementById("board");
+  boardDiv.innerHTML = "";
+  board.forEach(u => {
+    const div = document.createElement("div");
+    div.className = "unit";
+    div.innerText = u.name;
+    boardDiv.appendChild(div);
+  });
+}
+
+function rollShop() {
+  if (gold < 2) return;
+  gold -= 2;
+  shop = [];
+  for (let i = 0; i < 3; i++) {
+    shop.push(JSON.parse(JSON.stringify(units[Math.floor(Math.random()*units.length)])));
+  }
+  updateUI();
+}
+
+function buyUnit(i) {
+  if (gold < 3) return;
+  gold -= 3;
+  board.push(shop[i]);
+  shop.splice(i,1);
+  updateUI();
+}
+
+function startBattle() {
+  if (board.length === 0) return;
+
+  let enemy = [
+    { name: "Enemy", hp: 120, atk: 15 },
+    { name: "Enemy", hp: 120, atk: 15 }
+  ];
+
+  let playerHP = board.reduce((sum,u)=>sum+u.hp,0);
+  let enemyHP = enemy.reduce((sum,u)=>sum+u.hp,0);
+
+  let playerATK = board.reduce((sum,u)=>sum+u.atk,0);
+  let enemyATK = enemy.reduce((sum,u)=>sum+u.atk,0);
+
+  let log = "";
+
+  while(playerHP > 0 && enemyHP > 0) {
+    enemyHP -= playerATK;
+    playerHP -= enemyATK;
+  }
+
+  if (playerHP > 0) {
+    log = "You Win!";
+    gold += 5;
+  } else {
+    log = "You Lose!";
+  }
+
+  document.getElementById("log").innerText = log;
+  updateUI();
+}
+
+rollShop();
+</script>
+
+</body>
+</html>
